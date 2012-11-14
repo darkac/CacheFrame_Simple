@@ -9,6 +9,8 @@ written `MemoryManager` module to manage the memory operation.
 Nevertheless, it perfomrs better in the scene of list intersection when
 compared to the complicated counterpart version.
 
-Note: This module is multi-thread safe.
+Notes:
 
+1) This module is multi-thread safe.
+2) The `lru` and `qtca` etc. here represent the name of the caching policy.
 
