@@ -1,4 +1,4 @@
-// Last modified: 2012-11-12 10:10:37
+// Last modified: 2012-11-21 03:44:45
  
 /**
  * @file: CacheFrame.h
@@ -13,14 +13,20 @@
 #ifndef _CACHEFRAME_H_
 #define _CACHEFRAME_H_
 
+#include <string>
 #include <pthread.h>
 #include "hash.h"
+
+using namespace std;
 
 #define QTCA
 
 #define MEMORYSIZE 256        // in terms of Byte
 
 enum ItemType {Requested, Prefetched};
+enum PolicyType {CP_LRU = 0, CP_LFU, CP_QTFDF, CP_QTCA, CP_OPT};
+extern string Policy_Name[5];
+//char policy[5][10] = {"LRU", "LFU", "QTFDF", "QTCA", "OPT"};
 
 typedef struct cachenode {
 	int m_termid;
@@ -28,8 +34,8 @@ typedef struct cachenode {
 	struct cachenode *c_prev;
 	struct cachenode *c_next;
 	int *m_list_pointer;
-#ifdef QTCA
 	int m_reference;
+#ifdef QTCA
 	int m_chance;
 	ItemType m_type;
 #endif
@@ -41,20 +47,24 @@ protected:
 	cachenode_t *firstCache, *lastCache;
 	pthread_mutex_t cache_mutex;
 
+	PolicyType policy_name;
+
 	unsigned long long cacheCapacity; // in terms of int
 	unsigned long long cacheUnUsed;   // in terms of int
-
+	
 	double hits;
 	double total;
+	double io_number;
+	double io_amount; // in terms of int
 
 public:
 	CCacheFrame(int _size);
 	virtual ~CCacheFrame();
 
-	//double get_hits() const;
-	//double get_total() const;
 	void inc_hits()			{hits++;}
 	void inc_total()		{total++;}
+	double get_hits() const;
+	double get_total() const;
 	double get_ratio() const;
 
 	cachenode_t *get_first() const;

@@ -1,9 +1,9 @@
-// Last modified: 2012-11-20 20:58:39
+// Last modified: 2012-11-22 23:11:06
  
 /**
- * @file: lru.cpp
+ * @file: lfu.cpp
  * @author: tongjiancong(lingfenghx@gmail.com)
- * @date:   2012-10-26 14:09:42
+ * @date:   2012-11-20 19:57:33
  * @brief: 
  **/
  
@@ -16,19 +16,18 @@
 #include <cstring>
 #include <cassert>
 
-#include "lru.h"
+#include "lfu.h"
 #include "function.h"
- 
-using namespace std;
 
-CCacheFrame_LRU::CCacheFrame_LRU(int _size) : CCacheFrame(_size)
+CCacheFrame_LFU::CCacheFrame_LFU(int _size) : CCacheFrame(_size)
 {
-	policy_name = CP_LRU;
+	policy_name = CP_LFU;
+	_1Ref_InsertPoint = firstCache->c_next;
 }
 
-void CCacheFrame_LRU::CacheListInsert(
-		unsigned int termid, 
-		unsigned int listLen, 
+void CCacheFrame_LFU::CacheListInsert(
+		unsigned int termid,
+		unsigned int listLen,
 		unsigned long long file_offset,
 		ItemType type)
 {
@@ -46,6 +45,7 @@ void CCacheFrame_LRU::CacheListInsert(
 		memset(newcnode, 0, sizeof(cachenode_t));
 		newcnode->m_termid = termid;
 		newcnode->m_listlen = listLen;
+		newcnode->m_reference = 1;
 
 		hashnode_t *newhnode = (hashnode_t *)malloc(sizeof(hashnode_t));
 		checkPointer(newhnode, __LINE__);
@@ -55,17 +55,9 @@ void CCacheFrame_LRU::CacheListInsert(
 		newhnode->m_cache_node = newcnode;
 		newhnode->h_next = hashTable[slot]->h_next;
 		hashTable[slot]->h_next = newhnode;
-	
-		//cf_lock_mutex();
-
+		
 		/*
-		if (IsSpaceEnough(listLen) == 0)
-		{
-			//CacheListEvict(listLen, slot);
-			CacheListEvict(listLen);
-		}
-		*/
-
+		// ------------ Original Implementation ------------
 		if (firstCache == lastCache)
 		{
 			firstCache->c_next = newcnode;
@@ -75,13 +67,44 @@ void CCacheFrame_LRU::CacheListInsert(
 		}
 		else
 		{
-			firstCache->c_next->c_prev = newcnode;
-			newcnode->c_next = firstCache->c_next;
-			newcnode->c_prev = firstCache;
-			firstCache->c_next = newcnode;
+			cachenode_t *tmp = lastCache;
+			while ((tmp != firstCache) && (tmp->m_reference == 1))
+				tmp = tmp->c_prev;
+			newcnode->c_next = tmp->c_next;
+			if (tmp != lastCache)
+				tmp->c_next->c_prev = newcnode;
+			else
+				lastCache = newcnode;
+			newcnode->c_prev = tmp;
+			tmp->c_next = newcnode;
 		}
+		// ------------ Original Implementation ------------
+		*/
+
+		// ------------ Revised Implementation -------------
+		// A little tricky here.
+		// The item is inserted in the left of the _1Ref_InsertPoint node
+		// in order to avoid the traversing from the 'lastCache' node
+		if (_1Ref_InsertPoint != NULL)
+		{
+			newcnode->c_next = _1Ref_InsertPoint;
+			newcnode->c_prev = _1Ref_InsertPoint->c_prev;
+			_1Ref_InsertPoint->c_prev->c_next = newcnode;
+			_1Ref_InsertPoint->c_prev = newcnode;
+		}
+		else
+		// 1. the first insertion, there is no item
+		// 2. the items whose reference is 1 have all been evicted
+		{
+			newcnode->c_prev = lastCache;
+			newcnode->c_next = NULL;
+			lastCache->c_next = newcnode;
+			lastCache = newcnode;
+		}
+		_1Ref_InsertPoint = newcnode;
+		// ------------ Revised Implementation -------------
+
 		cacheUnUsed -= listLen;
-		//cf_unlock_mutex();
 
 		newcnode->m_list_pointer = (int *)malloc(listLen * sizeof(int));
 		checkPointer(newcnode->m_list_pointer, __LINE__);
@@ -90,54 +113,51 @@ void CCacheFrame_LRU::CacheListInsert(
 		assert((unsigned int)nobj == listLen);
 		io_number++;
 		io_amount += listLen;
+		
 	}
 	ht_unlock(slot);
-	// In fact, here will be a tiny time gap,
-	// but i don't think it will cause any problem.
-	// Since the termid has *just* been inserted into the CacheFrame,
-	// it won't be evicted at this time gap.
-	//ht_rdlock(slot);
 
 	return ;
 }
 
-void CCacheFrame_LRU::CacheListUpdate(cachenode_t *pcur)
+
+void CCacheFrame_LFU::CacheListUpdate(cachenode_t *pcur)
 {
-	//cf_lock_mutex();
-	if (firstCache->c_next != pcur)
+	pcur->m_reference++;
+	cachenode_t *tmp = pcur;
+	while ((tmp = tmp->c_prev) != firstCache)
 	{
+		if (pcur->m_reference < tmp->m_reference)
+			break;
+	}
+	
+	if (tmp->c_next == pcur)
+	{
+		// nothing to do here
+	}
+	else
+	{
+		pcur->c_prev->c_next = pcur->c_next;
 		if (pcur != lastCache)
 			pcur->c_next->c_prev = pcur->c_prev;
 		else
 			lastCache = pcur->c_prev;
-		pcur->c_prev->c_next = pcur->c_next;
 
-		pcur->c_next = firstCache->c_next;
-		firstCache->c_next->c_prev = pcur;
-		firstCache->c_next = pcur;
-		pcur->c_prev = firstCache;
+		pcur->c_next = tmp->c_next;
+		pcur->c_prev = tmp;
+		tmp->c_next->c_prev = pcur;
+		tmp->c_next = pcur;
 	}
-	else
-	{
-		/* firstCache -> pcur -> ... ... ... -> NULL
-		 *                 ^              ^
-		 *                 |      or      |
-		 *             lastCache      lastCache
-		 */
-		// nothing to do here
-	}
-	//cf_unlock_mutex();
 	return ;
 }
 
-void CCacheFrame_LRU::CacheListEvict(int cur_len)
+void CCacheFrame_LFU::CacheListEvict(int cur_len)
 {
 	unsigned int termid;
 	int listlen;
 	cachenode_t *temp;
 	hashnode_t *hn, *cur_hnode;
 
-	//cf_lock_mutex();
 	while (IsSpaceEnough(cur_len) == 0)
 	{
 		termid = lastCache->m_termid;
@@ -171,10 +191,11 @@ void CCacheFrame_LRU::CacheListEvict(int cur_len)
 
 		lastCache->c_prev->c_next = NULL;
 		temp = lastCache->c_prev;
+		if (_1Ref_InsertPoint == lastCache)
+			_1Ref_InsertPoint = NULL;
 		freeResource(lastCache);
 		lastCache = temp;
 	}
-	//cf_unlock_mutex();
 
 	return ;
 }

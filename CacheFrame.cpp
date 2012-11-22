@@ -1,4 +1,4 @@
-// Last modified: 2012-10-26 14:50:06
+// Last modified: 2012-11-21 03:45:56
  
 /**
  * @file: CacheFrame.cpp
@@ -19,6 +19,8 @@
 #include "function.h"
 #include "CacheFrame.h"
 
+string Policy_Name[5] = {"LRU", "LFU", "QTFDF", "QTCA", "OPT"};
+
 CCacheFrame::CCacheFrame(int _size)
 {
 	firstCache = (cachenode_t *)malloc(sizeof(cachenode_t));
@@ -34,14 +36,19 @@ CCacheFrame::CCacheFrame(int _size)
 
 	cacheCapacity = (unsigned long long)_size * 1024 * 1024 / sizeof(int);
 	cacheUnUsed = cacheCapacity;
-
+	
 	hits = 0;
 	total = 0;
+	io_number = 0;
+	io_amount = 0;
 }
 
 CCacheFrame::~CCacheFrame()
 {
+	printf("policy : %s\t", Policy_Name[policy_name].c_str());
 	printf("hit_ratio = %f\n", get_ratio());
+	printf("hits = %f\ttotal = %f\n", get_hits(), get_total());
+	printf("io_number = %f, io_amount = %f\n", io_number, io_amount);
 
 	cachenode_t *tmp = firstCache->c_next;
 	cachenode_t *todel;
@@ -56,6 +63,16 @@ CCacheFrame::~CCacheFrame()
 	freeResource(firstCache);
 
 	pthread_mutex_destroy(&cache_mutex);
+}
+
+double CCacheFrame::get_hits() const
+{
+	return hits;
+}
+
+double CCacheFrame::get_total() const
+{
+	return total;
 }
 
 double CCacheFrame::get_ratio() const

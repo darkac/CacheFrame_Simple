@@ -1,27 +1,28 @@
-// Last modified: 2012-11-20 22:50:49
+// Last modified: 2012-11-22 17:25:32
  
 /**
- * @file: lru.h
+ * @file: lfu.h
  * @author: tongjiancong(lingfenghx@gmail.com)
- * @date:   2012-10-25 17:24:14
+ * @date:   2012-11-20 13:57:18
  * @brief: 
  **/
  
 /* Talk is cheap, show me the code. */
 /* Good luck and have fun. */
  
-#ifndef _LRU_H_
-#define _LRU_H_
+#ifndef _LFU_H_
+#define _LFU_H_
  
 #include "CacheFrame.h"
 
-class CCacheFrame_LRU : public CCacheFrame
+class CCacheFrame_LFU : public CCacheFrame
 {
+private:
+	cachenode_t *_1Ref_InsertPoint;
+	// the leftmost node whose reference is 1
 public:
-	CCacheFrame_LRU(int _size);
-	//CCacheFrame_LRU(int _size) : CCacheFrame(_size)	{policy_name = CP_LRU;}
-	//~CCacheFrame_LRU();
-
+	CCacheFrame_LFU(int _size);
+	
 	void CacheListInsert(
 			unsigned int termid,
 			unsigned int listLen,

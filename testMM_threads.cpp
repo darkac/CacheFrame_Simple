@@ -1,4 +1,4 @@
-// Last modified: 2012-11-14 15:59:24
+// Last modified: 2012-11-21 03:15:55
  
 /**
  * @file: testMM.cpp
@@ -25,10 +25,11 @@
 //#include "CacheFrame.h"
 #include "lru.h"
 #include "qtca.h"
+#include "lfu.h"
 
 using namespace std;
 
-#define THREAD_NUM 100
+#define THREAD_NUM 1000
 #define TERM_NUM 5000000
 
 FILE *pIndex;
@@ -97,8 +98,12 @@ int main(int argc, char **argv)
 		wnd = atoi(argv[3]);
 		conf = atof(argv[2]);
 	}
-	CCacheFrame_QTCA *CF_QTCA = new CCacheFrame_QTCA(MEMORYSIZE, 8, sup, wnd, conf, &dict);
-	CF = CF_QTCA;
+	//CCacheFrame_QTCA *CF_QTCA = new CCacheFrame_QTCA(MEMORYSIZE, 8, sup, wnd, conf, &dict);
+	//CF = CF_QTCA;
+	//CCacheFrame_LFU *CF_LFU = new CCacheFrame_LFU(MEMORYSIZE);
+	//CF = CF_LFU;
+	CCacheFrame_LRU *CF_LRU = new CCacheFrame_LRU(MEMORYSIZE);
+	CF = CF_LRU;
 
 	pthread_t tid[THREAD_NUM];
 	int arg[THREAD_NUM];

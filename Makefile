@@ -1,8 +1,8 @@
 FLAGS = -O3 -Wall -msse2 -m64  -flax-vector-conversions -lpthread -g
 #./a.out: MemoryDict.o MemoryManager.o test.o hash.o function.o ListHandler.o CacheFrame.o
 #	g++ $(FLAGS) MemoryDict.o MemoryManager.o test.o hash.o function.o ListHandler.o CacheFrame.o
-./a.out: MemoryDict.o test.o hash.o function.o ListHandler.o CacheFrame.o lru.o qtca.o TM.o
-	g++ $(FLAGS) MemoryDict.o test.o hash.o function.o ListHandler.o CacheFrame.o lru.o qtca.o TM.o
+./a.out: MemoryDict.o test.o hash.o function.o ListHandler.o CacheFrame.o lru.o qtca.o TM.o lfu.o
+	g++ $(FLAGS) MemoryDict.o test.o hash.o function.o ListHandler.o CacheFrame.o lru.o qtca.o TM.o lfu.o
 TM.o:	TM.cpp TM.h
 	g++ $(FLAGS) -c TM.cpp -o TM.o
 MemoryDict.o: MemoryDict.cpp  MemoryDict.h
@@ -13,6 +13,8 @@ CacheFrame.o: CacheFrame.cpp CacheFrame.h
 	g++ $(FLAGS) -c CacheFrame.cpp -o CacheFrame.o
 lru.o: lru.cpp lru.h
 	g++ $(FLAGS) -c lru.cpp -o lru.o
+lfu.o: lfu.cpp lfu.h
+	g++ $(FLAGS) -c lfu.cpp -o lfu.o
 qtca.o: qtca.cpp qtca.h
 	g++ $(FLAGS) -c qtca.cpp -o qtca.o
 hash.o: hash.cpp hash.h

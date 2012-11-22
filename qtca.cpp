@@ -1,4 +1,4 @@
-// Last modified: 2012-11-13 00:50:43
+// Last modified: 2012-11-20 19:56:22
  
 /**
  * @file: qtca.cpp
@@ -58,6 +58,7 @@ CCacheFrame_QTCA::CCacheFrame_QTCA(
 		int _sup, int _wnd, double _conf,
 		MemoryDict *_dict) : CCacheFrame(_size)
 {
+	policy_name = CP_QTCA;
 	cor_file.clear();
 	cor_file.assign("correlated/cor");
 	stringstream tmp;
@@ -208,6 +209,8 @@ void CCacheFrame_QTCA::CacheListInsert(
 		fseek(pIndex, file_offset, SEEK_SET);
 		size_t nobj = fread(newcnode->m_list_pointer, sizeof(int), listLen, pIndex);
 		assert(static_cast<unsigned int>(nobj) == listLen);
+		io_number++;
+		io_amount += listLen;
 	}
 	ht_unlock(slot);
 
