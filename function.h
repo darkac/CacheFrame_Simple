@@ -1,4 +1,4 @@
-// Last modified: 2012-10-12 20:34:32
+// Last modified: 2012-11-30 15:21:41
  
 /**
  * @file: function.h
@@ -19,6 +19,8 @@
 extern FILE *pIndex;
 
 void checkPointer(void *p, int line);
+
+void checkResource(void *p, const char *source_name);
 
 void freeResource(void *pointer);
 

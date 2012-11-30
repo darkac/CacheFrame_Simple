@@ -1,4 +1,4 @@
-// Last modified: 2012-11-22 23:26:49
+// Last modified: 2012-11-30 15:23:42
  
 /**
  * @file: qtca.cpp
@@ -66,11 +66,14 @@ CCacheFrame_QTCA::CCacheFrame_QTCA(
 	cor_file = tmp.str();
 	
 	fCOR = fopen(cor_file.c_str(), "r");
+	checkResource(fCOR, cor_file.c_str());
+	/*
 	if (fCOR == NULL)
 	{
 		cout << "Failed to open file `" << cor_file << "`" << endl;
 		exit(-1);
 	}
+	*/
 	
 	correlationM.clear();
 	suffix_LengthM.clear();

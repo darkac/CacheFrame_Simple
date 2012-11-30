@@ -1,4 +1,4 @@
-// Last modified: 2012-10-17 21:09:05
+// Last modified: 2012-11-30 15:23:10
  
 /**
  * @file: function.cpp
@@ -20,6 +20,15 @@ void checkPointer(void *p, int line)
 	if (p == NULL)
 	{
 		printf("null pointer in line %d\n", line);
+		exit(-1);
+	}
+}
+
+void checkResource(void *p, const char *source_name)
+{
+	if (p == NULL)
+	{
+		printf("Failed to open `%s`\n", source_name);
 		exit(-1);
 	}
 }
