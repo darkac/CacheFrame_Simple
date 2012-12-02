@@ -1,4 +1,4 @@
-// Last modified: 2012-12-03 03:11:55
+// Last modified: 2012-12-03 03:28:23
  
 /**
  * @file: qtfdf.h
@@ -82,7 +82,7 @@ public:
 	void CacheListEvict(int cur_len);
 	
 	const QtfDf* qtQue_top()			{ return qtQue.top(); }
-	void qtQue_push(QtfDf* newq)	{ qtQue.push(newq); }
+	void qtQue_push(QtfDf* newq)		{ qtQue.push(newq); }
 	void qtQue_pop()					{ qtQue.pop(); }
 	bool qtQue_empty()					{ return qtQue.empty(); }
 };
