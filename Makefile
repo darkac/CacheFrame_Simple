@@ -1,4 +1,4 @@
-FLAGS = -O3 -Wall -msse2 -m64  -flax-vector-conversions -lpthread -g
+FLAGS = -O3 -Wall -msse2 -m64  -flax-vector-conversions -lpthread -g -std=c++0x
 #./a.out: MemoryDict.o MemoryManager.o test.o hash.o function.o ListHandler.o CacheFrame.o
 #	g++ $(FLAGS) MemoryDict.o MemoryManager.o test.o hash.o function.o ListHandler.o CacheFrame.o
 ./a.out: MemoryDict.o test.o hash.o function.o ListHandler.o CacheFrame.o lru.o qtca.o TM.o lfu.o
