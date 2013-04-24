@@ -1,4 +1,4 @@
-// Last modified: 2012-10-17 21:09:52
+// Last modified: 2013-04-24 20:58:39
  
 /**
  * @file: hash.h
@@ -46,6 +46,7 @@ hashnode_t *getHashNode(unsigned int termid);
 
 void ht_rdlock(unsigned int slot);
 void ht_wrlock(unsigned int slot);
+int ht_trywrlock(unsigned int slot);
 void ht_unlock(unsigned int slot);
  
 #endif

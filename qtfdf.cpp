@@ -1,4 +1,4 @@
-// Last modified: 2012-12-03 01:49:55
+// Last modified: 2013-04-24 20:38:22
  
 /**
  * @file: qtfdf.cpp
@@ -152,7 +152,12 @@ void CCacheFrame_QTFDF::CacheListEvict(int cur_len)
 		hashnode_t *hn, *cur_hnode;
 
 		hn = hashTable[slot];
-		ht_wrlock(slot);
+		//ht_wrlock(slot);
+		if (ht_trywrlock(slot) == EBUSY)
+		{
+			cout << "exceeed " << (cur_len - cacheUnUsed) * sizeof(int) << endl;
+			break;
+		}
 		while ((cur_hnode = hn->h_next) != NULL)
 		{
 			if (cur_hnode->m_key == termid)

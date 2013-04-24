@@ -1,4 +1,4 @@
-// Last modified: 2012-10-21 15:04:32
+// Last modified: 2013-04-24 21:00:10
  
 /**
  * @file: hash.cpp
@@ -104,4 +104,9 @@ void ht_wrlock(unsigned int slot)
 void ht_unlock(unsigned int slot)
 {
 	pthread_rwlock_unlock(&hashTable[slot]->m_rwlock);
+}
+
+int ht_trywrlock(unsigned int slot)
+{
+	return pthread_rwlock_trywrlock(&hashTable[slot]->m_rwlock);
 }
